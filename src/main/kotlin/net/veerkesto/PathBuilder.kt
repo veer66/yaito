@@ -1,36 +1,37 @@
 package net.veerkesto
 
-fun buildPath(dix: PrefixTree<Boolean>, linkBuilders: Array<LinkBuilder>, text: String): Array<Link> {
-    var path = Array(text.length + 1, { i -> Link(0, LinkType.INIT, 0, 0) })
-    var leftBoundary = 0
+fun buildPath(dix: PrefixTree<Boolean>, linkBuilders: Array<LinkBuilder>, text: String): Array<Link?> {
 
+    var context = LinkContext(text = text,
+            i = 0,
+            ch = '!',
+            path = kotlin.arrayOfNulls<Link>(text.length + 1),
+            leftBoundary = 0,
+            bestLink = null)
+
+    context.path[0] = Link(0, LinkType.INIT, 0, 0)
     for ((i, ch) in text.withIndex()) {
-        var bestLink: Link? = null
-
+        context.bestLink = null
+        context.i = i
+        context.ch = ch
         linkBuilders.forEach { linkBuilder ->
-            val context = LinkContext(text = text,
-                                      i = i,
-                                      ch = ch,
-                                      path = path,
-                                      leftBoundary = leftBoundary,
-                                      bestLink = bestLink)
             val link = linkBuilder.build(context)
             if (link != null) {
-                if (link.isBetterThan(bestLink)) {
-                    bestLink = link
+                if (link.isBetterThan(context.bestLink)) {
+                    context.bestLink = link
                 }
             }
         }
 
-        if (bestLink == null) {
+        if (context.bestLink == null) {
             throw RuntimeException("Cannot find link")
         }
 
-        path[i + 1] = bestLink!!
+        context.path[i + 1] = context.bestLink!!
 
-        if (bestLink?.linkType != LinkType.UNK) {
-            leftBoundary = i + 1
+        if (context.bestLink?.linkType != LinkType.UNK) {
+            context.leftBoundary = i + 1
         }
     }
-    return path
+    return context.path
 }

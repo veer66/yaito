@@ -1,9 +1,9 @@
 package net.veerkesto
 
 data class LinkContext (
-    val text: String,
-    val i: Int,
-    val ch: Char,
-    val path: Array<Link>,
-    val leftBoundary: Int,
-    val bestLink: Link?)
+        val text: String,
+        var i: Int,
+        var ch: Char,
+        val path: Array<Link?>,
+        var leftBoundary: Int,
+        var bestLink: Link?)

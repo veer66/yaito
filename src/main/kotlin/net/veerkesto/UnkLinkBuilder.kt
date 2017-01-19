@@ -10,7 +10,7 @@ class UnkLinkBuilder() : LinkBuilder {
 
         return Link(s = context.leftBoundary,
                     linkType = LinkType.UNK,
-                    wordCount = source.wordCount + 1,
-                    unkCount = source.unkCount + 1)
+                    wordCount = source!!.wordCount + 1,
+                    unkCount = source!!.unkCount + 1)
     }
 }

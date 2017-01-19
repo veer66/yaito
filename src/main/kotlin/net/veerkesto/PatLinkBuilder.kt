@@ -26,8 +26,8 @@ open class PatLinkBuilder(val isAcceptable: (Char) -> Boolean, val linkType: Lin
             val source = context.path[s!!]
             return Link(s = s!!,
                     linkType = linkType,
-                    wordCount = source.wordCount + 1,
-                    unkCount = source.unkCount)
+                    wordCount = source!!.wordCount + 1,
+                    unkCount = source!!.unkCount)
         }
 
         return null

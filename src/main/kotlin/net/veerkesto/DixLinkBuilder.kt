@@ -1,35 +1,62 @@
 package net.veerkesto
 
-data class DixPointer(val nodeId:Int, val s: Int, val offset: Int, val isFinal: Boolean)
+data class DixPointer(var nodeId:Int, val s: Int, var offset: Int, var isFinal: Boolean, var valid: Boolean)
 
 class DixLinkBuilder(val dix: PrefixTree<Boolean>) : LinkBuilder {
+    var max = 0xFF
+    var pointers: Array<DixPointer?> = kotlin.arrayOfNulls<DixPointer>(max)
+    var n = 0
 
-    var pointers: Array<DixPointer> = arrayOf()
-
-    fun updatePointer(pointer: DixPointer, ch:Char) : DixPointer? {
-        val childNode = dix.lookup(pointer.nodeId, pointer.offset, ch) ?: return null
-        return DixPointer(nodeId = childNode.childId,
-                          s = pointer.s,
-                          offset = pointer.offset + 1,
-                          isFinal = childNode.isFinal)
+    fun updatePointer(pointer: DixPointer?, ch:Char) {
+        val childNode = dix.lookup(pointer!!.nodeId, pointer!!.offset, ch)
+        if (childNode != null) {
+            pointer!!.nodeId = childNode.childId
+            pointer!!.offset++
+            pointer!!.isFinal = childNode.isFinal
+        } else {
+            pointer!!.valid = false
+        }
     }
 
     override fun build(context: LinkContext): Link? {
-        pointers = pointers.plus(DixPointer(0, context.i, 0, false))
-                .map {pointer -> updatePointer(pointer, context.ch)}
-                .filterNotNull()
-                .toTypedArray()
+        pointers[n] = DixPointer(0, context.i, 0, false, true)
 
-        var selectedLink: Link? = null
-        for (finalPointer in pointers.filter {pointer -> pointer.isFinal}) {
-            val source = context.path[finalPointer.s]
-            var link: Link? = Link(finalPointer.s, LinkType.DICT, source.wordCount + 1, source.unkCount)
+        n++
 
-            if (link?.isBetterThan(selectedLink)!!) {
-                selectedLink = link
+        if (n == max) {
+            var newPointers: Array<DixPointer?> = kotlin.arrayOfNulls<DixPointer>(max * 2)
+            for ((i, pointer) in pointers.withIndex()) run {
+                newPointers[i] = pointer
             }
-
+            pointers = newPointers
         }
+
+        var i = 0
+        var j = 0
+        var selectedLink: Link? = null
+
+        while (i < n) {
+            updatePointer(pointers[i], context.ch)
+            val pointer = pointers[i]
+            if (pointer!!.valid) {
+                if (j < i) {
+                    pointers[j] = pointer
+                }
+                j++
+
+                if (pointer.isFinal) {
+                    val s = pointer.s
+                    val source = context.path[s]
+                    var link: Link? = Link(s, LinkType.DICT, source!!.wordCount + 1, source!!.unkCount)
+                    if (link?.isBetterThan(selectedLink)!!) {
+                        selectedLink = link
+                    }
+                }
+            }
+            i++
+        }
+        n = j
+
         return selectedLink
     }
 

@@ -4,7 +4,7 @@ import java.util.*
 
 data class TextRange(val s:Int, val e:Int)
 
-fun pathToRanges(path: Array<Link>): Array<TextRange> {
+fun pathToRanges(path: Array<Link?>): Array<TextRange> {
     if (path.isEmpty()) {
         return arrayOf()
     }
@@ -16,8 +16,8 @@ fun pathToRanges(path: Array<Link>): Array<TextRange> {
     var e = path.count() - 1
     var ranges = ArrayList<TextRange>()
 
-    while (path[e].linkType != LinkType.INIT) {
-        val s = path[e].s
+    while (path[e]!!.linkType != LinkType.INIT) {
+        val s = path[e]!!.s
         ranges.add(TextRange(s, e))
         e = s
     }
