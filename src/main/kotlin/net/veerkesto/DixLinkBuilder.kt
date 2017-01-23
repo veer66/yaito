@@ -24,7 +24,8 @@ class DixLinkBuilder(val dix: PrefixTree<Boolean>) : LinkBuilder {
         n++
 
         if (n == max) {
-            var newPointers: Array<DixPointer?> = kotlin.arrayOfNulls<DixPointer>(max * 2)
+            max *= 2
+            var newPointers: Array<DixPointer?> = kotlin.arrayOfNulls<DixPointer>(max)
             for ((i, pointer) in pointers.withIndex()) run {
                 newPointers[i] = pointer
             }
